@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillBridge - Assessment</title>
+
+  <!-- html2pdf.js library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-card: #121212;
+      --border-color: #262626;
+      --text-primary: #ffffff;
+      --text-secondary: #a1a1aa;
+      --accent-white: #ffffff;
+      --accent-black: #000000;
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 580px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      margin-top: 20px;
+    }
+
+    h2 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; color: var(--accent-white); }
+    .subtitle { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 28px; }
+
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    input[type="text"], input[type="email"] {
+      width: 100%; padding: 14px; background: #18181b; border: 1px solid var(--border-color);
+      border-radius: 10px; color: var(--text-primary); font-size: 0.95rem; outline: none; transition: 0.2s;
+    }
+    input[type="text"]:focus, input[type="email"]:focus { border-color: var(--accent-white); }
+
+    .checkbox-group { display: flex; flex-direction: column; gap: 10px; }
+    .checkbox-label {
+      display: flex; align-items: center; gap: 12px; background: #18181b;
+      border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; transition: 0.2s;
+    }
+    .checkbox-label:hover { border-color: #52525b; background: #202024; }
+    .checkbox-label input { accent-color: var(--accent-white); width: 18px; height: 18px; }
+
+    .btn {
+      display: block; width: 100%; padding: 14px; background: var(--accent-white); color: var(--accent-black);
+      border: none; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; text-align: center; text-decoration: none; transition: 0.2s; margin-top: 10px;
+    }
+    .btn:hover { background: #e4e4e7; transform: translateY(-1px); }
+
+    @media (max-width: 480px) {
+      body { padding: 12px; }
+      .container { padding: 20px; }
+      h2 { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>SkillBridge Assessment</h2>
+    <p class="subtitle">Evaluate your background to build your tailored roadmap.</p>
+
+    <form id="assessment-form">
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" placeholder="Enter full name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="Enter email address" required>
+      </div>
+
+      <div class="form-group">
+        <label>Select technologies you have exposure to:</label>
+        <div class="checkbox-group">
+          <label class="checkbox-label"><input type="checkbox" name="skills" value="HTML/CSS"> Basic HTML5 & CSS3</label>
+          <label class="checkbox-label"><input type="checkbox" name="skills" value="JavaScript"> JavaScript Basics</label>
+          <label class="checkbox-label"><input type="checkbox" name="skills" value="Python"> Python Programming</label>
+          <label class="checkbox-label"><input type="checkbox" name="skills" value="UI/UX"> Graphic Design / UI Basics</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="custom-skill">Other Skills (Optional):</label>
+        <input type="text" id="custom-skill" placeholder="e.g. Flutter, PHP, SQL">
+      </div>
+
+      <button type="submit" class="btn" id="submit-btn">Analyze & Generate Roadmap ➔</button>
+    </form>
+  </div>
+
+  <div id="roadmap-result-section" style="display: none; margin-top: 40px; width: 100%; max-width: 580px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 style="color: #ffffff; font-size: 1.5rem; margin: 0;">Your Tailored Learning Roadmap</h2>
+      <button id="download-pdf-btn" style="padding: 10px 18px; background: #ffffff; color: #000000; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+        📄 Download PDF
+      </button>
+    </div>
+
+    <div id="roadmap-timeline" style="background: #121212; border: 1px solid #262626; border-radius: 12px; padding: 24px;">
+      <!-- AI Generated Weeks yahan render honge -->
+    </div>
+  </div>
+
+  <script type="module">
+    import { db } from "./js/firebase-config.js";
+    import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("assessment-form");
+      const submitBtn = document.getElementById("submit-btn");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        submitBtn.textContent = "Analyzing...";
+        submitBtn.disabled = true;
+
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const selectedCheckboxes = Array.from(document.querySelectorAll('input[name="skills"]:checked')).map(cb => cb.value);
+        
+        const customSkillInput = document.getElementById("custom-skill").value.trim();
+        if (customSkillInput) {
+          selectedCheckboxes.push(...customSkillInput.split(',').map(s => s.trim()).filter(s => s.length > 0));
+        }
+
+        let calculatedLevel = selectedCheckboxes.length >= 3 ? "intermediate" : "beginner";
+
+        const userData = {
+          name, email, priorSkills: selectedCheckboxes, skillLevel: calculatedLevel, createdAt: new Date().toISOString()
+        };
+
+        try {
+          const docRef = await addDoc(collection(db, "users"), userData);
+          userData.uid = docRef.id;
+          localStorage.setItem("skillbridge_user", JSON.stringify(userData));
+          window.location.href = "roadmap.html";
+        } catch (error) {
+          console.error(error);
+          localStorage.setItem("skillbridge_user", JSON.stringify(userData));
+          window.location.href = "roadmap.html";
+        }
+      });
+    });
+  </script>
+  <script type="module" src="js/mentor.js"></script>
+</body>
+</html>

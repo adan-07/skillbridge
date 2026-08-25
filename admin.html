@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillBridge - Admin Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 10px; border: 1px solid var(--border); text-align: left; font-size: 0.9rem; }
+    th { background: #0f172a; color: var(--accent); }
+  </style>
+</head>
+<body>
+
+  <div class="container" style="max-width: 900px;">
+    <h1>📊 Admin Monitoring Dashboard</h1>
+    <p class="subtitle">Real-time overview of registered students and their skill levels.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Skill Level</th>
+          <th>Track</th>
+        </tr>
+      </thead>
+      <tbody id="student-table-body">
+        <tr><td colspan="4">Loading realtime data...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>
